@@ -95,28 +95,34 @@ theta    = theta - theta(1);
 
 % ---------- Elevação (φ_n) ----------
 % Estatísticas de σ_phi (Tabela 6, UMi LoS)
-mu_sph_log  = -0.1*log10(1+fc_GHz) + 0.73;          % média (log10 de graus)
-sig_sph_log = -0.04*log10(1+fc_GHz) + 0.34;         % desvio-padrão (log10 de graus)
-sph_log  = normrnd(mu_sph_log, sig_sph_log);        % amostra de σϕ;log
-sph_deg  = 10^(sph_log);                            % σϕ em graus (escala linear)
-sph_rad  = deg2rad(sph_deg);                        % σϕ em radianos
+% média (log10 de graus)
+mu_sph_log  = -0.1*log10(1+fc_GHz) + 0.73;
+% desvio-padrão (log10 de graus)
+sig_sph_log = -0.04*log10(1+fc_GHz) + 0.34;       
+sph_log  = normrnd(mu_sph_log, sig_sph_log); 
+% σϕ em graus (escala linear)
+sph_deg  = 10^(sph_log);    
+% σϕ em radianos
+sph_rad  = deg2rad(sph_deg);                        
 
 % Ângulos iniciais de elevação (em rad)
-phi_p   = -sph_rad .* log(ratio);                   % ϕ'_n
+phi_p   = -sph_rad .* log(ratio);                   
 
 % Sinais e flutuações
-Uphi    = randsample([-1,1], N, true);              % U_n ∈ {-1,1}
-Yphi    = normrnd(0, sph_rad/7, [N,1]);             % Y_n ~ N(0, σϕ/7)
+Uphi    = randsample([-1,1], N, true);             
+Yphi    = normrnd(0, sph_rad/7, [N,1]);            
 
 % Elevação final e ajuste LoS (define φ̄ arbitrário em [0, π/2])
-phi_bar = pi/6;                                     % por exemplo, 30°
-phi     = Uphi(:).*phi_p(:) + Yphi;                 % ϕ_n
-phi     = phi - phi(1) + phi_bar;                   % LoS centrado em φ̄
+phi_bar = pi/6;                                    
+phi     = Uphi(:).*phi_p(:) + Yphi; 
+% LoS centrado em φ̄
+phi     = phi - phi(1) + phi_bar;                   
 
 % ---- visualizar espectros angulos de chegada azimute ----
 theta_deg = rad2deg(theta);
-y = alpha2;                              % potências
-y(y<=0) = min(y(y>0))*0.1;              % evita zeros na escala log
+y = alpha2;    
+% evita zeros na escala log
+y(y<=0) = min(y(y>0))*0.1;              
 
 % topo baseado apenas na difusa (exclui n=1), com 20% de folga
 y_top = 1.2 * max(y(2:end));
@@ -143,10 +149,10 @@ delta_dB = 10*log10(y(1)/max(y(2:end)));
 hold off
 
 % ---- visualizar espectros angulos de chegada elevação ----
-
-phi_deg = rad2deg(phi);        % elevação em graus
+% elevação em graus
+phi_deg = rad2deg(phi);        
 y = alpha2; 
-y(y<=0) = min(y(y>0))*0.1;     % evita zeros na escala log
+y(y<=0) = min(y(y>0))*0.1;     
 
 figure; hold on
 % stems pretos só para a difusa (exclui o tap 1 / LoS)
@@ -154,8 +160,8 @@ s = stem(phi_deg(2:end), y(2:end), 'Color',[0 0 0], 'LineStyle','-');
 s.Marker = '^'; s.MarkerSize = 6; s.MarkerFaceColor = [0 0 0]; s.MarkerEdgeColor = [0 0 0];
 
 % seta azul no ângulo de elevação do LoS
-yl  = [1e-8 1];                 % limites do eixo Y (log)
-xL  = [0 90];                   % faixa típica de elevação (ajuste se precisar)
+yl  = [1e-8 1];                 
+xL  = [0 90];                   
 plot([phi_deg(1) phi_deg(1)], yl, 'b', 'LineWidth', 2);
 plot(phi_deg(1), yl(2), '^', 'MarkerSize', 9, 'MarkerFaceColor','b', 'MarkerEdgeColor','b');
 
@@ -168,23 +174,24 @@ hold off
 
 
 
-%------------------
-theta_deg = rad2deg(theta);   % converte azimute de rad -> graus (se quiser usar em outros plots)
-phi_deg   = rad2deg(phi);     % converte elevação de rad -> graus (raio do gráfico polar)
+ 
+% converte elevação de rad 
+phi_deg   = rad2deg(phi);     
 
-th = mod(theta, 2*pi);        % garante azimute em [0, 2π) para o eixo polar (radianos)
-r  = phi_deg;                  % no gráfico polar vamos usar a elevação (em graus) como raio
+% garante azimute em [0, 2π)
+th = mod(theta, 2*pi);         
+r  = phi_deg;                 
 
 % --- Figura polar: LoS como seta azul, demais raios em vermelho ---
 figure
 pax = polaraxes; hold on
 
 % limites e marcações do gráfico polar (0 a 90 graus de elevação)
-rlim([0 90]);                  % raio de 0 até 90° (elevação)
-rticks([0 20 40 60 80]);       % marcas no raio
-thetaticks(0:30:330);          % marcas angulares (0°, 30°, ..., 330°)
+rlim([0 90]);                  
+rticks([0 20 40 60 80]);       
+thetaticks(0:30:330);         
 
-% desenha a seta azul do caminho LoS (do centro até o ponto do tap 1)
+% seta azul do caminho LoS 
 polarplot([th(1) th(1)], [0 r(1)], 'b', 'LineWidth', 1.8);
 polarplot(th(1), r(1), 'bo', 'LineWidth', 1.8, 'MarkerFaceColor','none');
 
@@ -197,9 +204,9 @@ grid on; hold off
 
 % item 4
 % --- Comprimento de onda na sua fc ---
-c  = 3e8;                          % velocidade da luz [m/s]
-fc = fc_GHz*1e9;                   % Hz
-lambda = c/fc;                     % [m]
+c  = 3e8;                        
+fc = fc_GHz*1e9;                   
+lambda = c/fc;                     
 
 % --- Vetores r_n a partir de theta, phi (já obtidos na Q3) ---
 ux = cos(theta).*sin(phi);
@@ -208,29 +215,30 @@ uz = cos(phi);
 R  = [ux uy uz];                   % Nx3 com cada linha = r_n
 
 % --- (a) Dois vetores velocidade: v=5 e 50 m/s ---
-v_speeds = [5, 50];                % módulos [m/s]
+v_speeds = [5, 50];                
 
-% Escolha da direção da velocidade (θ_v, φ_v):
-% Aqui usamos movimento no plano horizontal (φ_v = 90°)
+
 % e AZIMUTE ortogonal ao caminho LoS para que a componente LoS tenha ν≈0.
-phi_v   = pi/2;                    % 90° -> movimento no plano x-y
-theta_v = theta(1) + pi/2;         % 90° em relação ao azimute do LoS
+% 90° -> movimento no plano x-y
+phi_v   = pi/2;      
+% 90° em relação ao azimute do LoS
+theta_v = theta(1) + pi/2;         
 vhat = [cos(theta_v)*sin(phi_v); ...
         sin(theta_v)*sin(phi_v); ...
-        cos(phi_v)];               % direção unitária da velocidade
+        cos(phi_v)];             
 
 % --- (b) Cálculo dos desvios Doppler ν_n para cada velocidade ---
-proj = R * vhat;                   % projeção r_n · vhat  (Nx1 em [-1,1])
+proj = R * vhat;                  
 
-nu_5  = (v_speeds(1)/lambda) * proj;  % [Hz]
-nu_50 = (v_speeds(2)/lambda) * proj;  % [Hz]
+nu_5  = (v_speeds(1)/lambda) * proj;  
+nu_50 = (v_speeds(2)/lambda) * proj; 
 
-% --- (c) Espectros de potência no domínio Doppler (dois casos lado a lado) ---
+% --- (c) Espectros de potência no domínio Doppler (dois casos) ---
 y = alpha2; 
-y(y<=0) = min(y(y>0))*0.1;         % evita zeros na escala log
+y(y<=0) = min(y(y>0))*0.1;        
 
-fDmax = v_speeds./lambda;          % máximos teóricos |ν| = v/λ (para comparação)
-yl = [1e-8 1];                      % mesmo range de potência em ambos
+fDmax = v_speeds./lambda;          
+yl = [1e-8 1];                      
 
 figure
 subplot(1,2,1)
@@ -251,32 +259,34 @@ xlabel('\nu (Hz)'); ylabel('Potência'); title('v_{rx} = 50 m/s')
 
 %----------item 5 
 % escolhe uma direção de velocidade para o receptor
-    v_rx = 5;                 % m/s (valor de referência para gerar nu se não existir)
-    phi_v = pi/2;             % movimento no plano horizontal
-    theta_v = theta(1)+pi/2;  % ortogonal ao LoS -> nu(LoS) ~ 0
+    v_rx = 5;  
+    % movimento no plano horizontal
+    phi_v = pi/2;   
+    % ortogonal ao LoS -> nu(LoS) ~ 0
+    theta_v = theta(1)+pi/2;  
     vhat = [cos(theta_v)*sin(phi_v); sin(theta_v)*sin(phi_v); cos(phi_v)];
     nu = (v_rx/lambda) * (R*vhat);   % ν_n (Hz)  [N x 1]
     
     % -------------------- Q5(a): Pulsos retangulares --------------------
-dt_list = [1e-7, 1e-5, 1e-3]; % s
-Nt = 1e5;                     % nº de amostras no eixo do tempo para cada pulso
+dt_list = [1e-7, 1e-5, 1e-3]; 
+% nº de amostras no eixo do tempo para cada pulso
+Nt = 1e5;                    
 
-% Função pulso retangular unitário (equivalente banda-base)
+% Função pulso retangular unitário 
 % s(t; dt) = 1 em [0, dt], e 0 fora
 rect = @(t,dt) double((t>=0) & (t<=dt));
 
 % -------------------- Q5(b): Sinal recebido para cada δt --------------------
-% r(t) = sum_n alpha_n * exp(-j2π[(fc+νn)τn - νn t]) * s(t-τn)
 results = cell(numel(dt_list),1);
 for k = 1:numel(dt_list)
     dt = dt_list(k);
-    t = linspace(0, 5*dt, Nt).';               % domínio temporal [0, 5·δt]  (coluna)
-    r = complex(zeros(Nt,1));                   % acumula o sinal recebido
+    t = linspace(0, 5*dt, Nt).';              
+    r = complex(zeros(Nt,1));                  
 
-    % termo fixo de fase por percurso (constante no tempo)
-    phase0 = exp(-1j*2*pi*(((fc_GHz*10^9)+nu).*tau_orden));  % e^{-j2π(fc+ν)τ}
+    % termo fixo de fase por percurso 
+    phase0 = exp(-1j*2*pi*(((fc_GHz*10^9)+nu).*tau_orden));  
 
-    % soma multipercurso (vetoriza por "janelas" onde o retângulo é 1)
+    % soma multipercurso 
     for n = 1:numel(alpha2)
         % máscara temporal onde s(t-τ_n) = 1
         mask = (t >= tau_orden(n)) & (t <= (tau_orden(n)+dt));
@@ -298,16 +308,19 @@ if ~exist('sigma_tau','var')
 end
 
 for k = 1:numel(results)
-    t  = results{k}.t;           % eixo temporal [s] em [0, 5*dt]
-    r  = results{k}.r;           % sinal recebido complexo
-    dt = results{k}.dt;          % largura do pulso
+    % eixo temporal [s] em [0, 5*dt]
+    t  = results{k}.t;  
+    % sinal recebido complexo 
+    r  = results{k}.r; 
+    % largura do pulso 
+    dt = results{k}.dt;          
 
     % pulso retangular unitário: s(t)=1 em [0, dt], 0 fora
     s_tx = double((t>=0) & (t<=dt));
 
     % largura de banda aproximada do pulso (para o título)
-    Bw = 1/dt;                   % ~ 1/dt [Hz]
-
+    Bw = 1/dt;                  
+    
     figure; hold on
     % pulso transmitido (step/retângulo azul)
     stairs(t, s_tx, 'b', 'LineWidth', 1.6);
@@ -318,17 +331,15 @@ for k = 1:numel(results)
     % estética parecida com a figura de referência
     grid on
     xlim([0, 5*dt]);
-    ylim([0, 1.2*max([1; abs(r)])]);   % dá um respiro acima do maior valor
+    ylim([0, 1.2*max([1; abs(r)])]);  
     xlabel('Tempo absoluto — t (s)')
-    ylabel('|{\itr}\_{}(t)|','Interpreter','tex')  % ou: '|\itr~(t)|' com LaTeX se preferir
+    ylabel('|{\itr}\_{}(t)|','Interpreter','tex')  
     title(sprintf('Sinal Recebido, \\delta t = %.0e s,  B_w \\approx %.0e Hz,  \\sigma_\\tau \\approx %.0f ns', ...
                   dt, Bw, 1e9*sigma_tau), 'Interpreter','tex')
     legend({'Sinal Transmitido','Sinal Recebido'}, 'Location','northeast')
     hold off
 end
 
-
-%sgtitle('Canal fixo (mesmos \\alpha_n^2, \\tau_n, \\nu_n) e três larguras de pulso')
 
 
 
@@ -354,7 +365,7 @@ xlabel('Domínio de Atraso — \tau (\mus)')
 ylabel('PDP')
 title('Potência Multipercurso')
 
-plot([0 0], ax.YLim, 'b', 'LineWidth', 1.2)  % linha azul em x=0 (opcional)
+plot([0 0], ax.YLim, 'b', 'LineWidth', 1.2)  
 hold off
 
 % (g) atraso médio e espalhamento de atraso (RMS) com base em alpha2 e tau
